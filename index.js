@@ -1,7 +1,9 @@
-const RoomService = require('./RoomService.js')
+const RoomService = require('./services/RoomService.js')
+const GameService = require('./services/GameService.js')
 const express = require('express');
-const app = express();
+
 const http = require('http');
+const app = express();
 const server = http.createServer(app);
 const cors = require('cors')
 const { Server } = require("socket.io");
@@ -12,6 +14,9 @@ const corsOptions = {
 
 const io = new Server(server);
 const roomService = new RoomService();
+const gameService = new GameService();
+
+global.globalRooms = {};
 
 app.use(cors(corsOptions))
 
@@ -20,7 +25,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/lobby/generateId', function(req, res){
-    let newLobbyId = roomService.generateLobbyId()
+    let newLobbyId = roomService.generateRoomId()
     res.send({'id': newLobbyId})
 });
 
@@ -28,13 +33,33 @@ io.on('connection', (socket) => {
     console.log("user connected")
 
     socket.on('onRoom', (roomNumber) =>{
+        let player;
+        try{
+            player = roomService.addToRooms(roomNumber, socket.id);
+        }catch (error){
+            io.to(socket.id).emit('tooManyPlayers', error.message)
+            return;
+        }
         socket.join(roomNumber);
-        console.log(socket.id);
-        roomService.addToRooms(roomNumber, socket.id);
-
         io.sockets.in(roomNumber).emit("onRoom", 'you joined room ' + roomNumber);
+        io.sockets.in(roomNumber).emit("gameboard", gameService.gameboard);
+        io.to(socket.id).emit("player", player);
+
+
+        socket.on('placeAMove', (move) =>{
+            gameService.placeAMove(move.position, move.player);
+            io.sockets.in(roomNumber).emit("gameboard", gameService.gameboard);
+        })
     })
+
+
+
+    socket.on("disconnect", () => {
+        roomService.removeFromRoom(socket.id)
+        console.log('user disconnected');
+    });
 });
+
 
 server.listen(3000, () => {
     console.log('listening on *:3000');
