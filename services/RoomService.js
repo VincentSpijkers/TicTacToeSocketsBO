@@ -28,21 +28,32 @@ let RoomService = class {
     }
 
     hasTooManyPlayersInRoom(roomId){
-        return this.doesRoomExist(roomId) && this.rooms[roomId].length >= this.PLAYER_LIMIT;
+        return this.doesRoomExist(roomId) && globalRooms[roomId].length >= this.PLAYER_LIMIT;
     }
 
     doesRoomExist(roomId){
-        return roomId in this.rooms;
+        return roomId in globalRooms;
     }
 
     removeFromRoom(playerId){
-        for(let room in this.rooms){
-            let currentRoom = this.rooms[room];
+        for(let room in globalRooms){
+            let currentRoom = globalRooms[room];
             for (let i = 0; i < currentRoom.length; i++){
                 let currentPlayer = currentRoom[i];
                 if (currentPlayer.id === playerId){
-                    this.rooms[room].splice(i, 1)
+                    globalRooms[room].splice(i, 1)
                 }
+            }
+        }
+    }
+
+    getRoomIdByClientId(rooms, id){
+        const [idFromRoom] = rooms;
+        const [, roomId] = rooms;
+        console.log(first)
+        for (let room in rooms){
+            if (room[0] === id){
+                return room[1];
             }
         }
     }

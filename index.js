@@ -37,22 +37,23 @@ io.on('connection', (socket) => {
         try{
             player = roomService.addToRooms(roomNumber, socket.id);
         }catch (error){
+            console.log(error)
             io.to(socket.id).emit('tooManyPlayers', error.message)
             return;
         }
+
         socket.join(roomNumber);
+        gameService.createBoard(roomNumber)
         io.sockets.in(roomNumber).emit("onRoom", 'you joined room ' + roomNumber);
-        io.sockets.in(roomNumber).emit("gameboard", gameService.gameboard);
+        io.sockets.in(roomNumber).emit("gameboard", globalRooms[roomNumber].gameboard);
         io.to(socket.id).emit("player", player);
-
-
-        socket.on('placeAMove', (move) =>{
-            gameService.placeAMove(move.position, move.player);
-            io.sockets.in(roomNumber).emit("gameboard", gameService.gameboard);
-        })
     })
 
-
+    socket.on('placeAMove', (move) =>{
+        const [, roomId] = socket.rooms;
+        gameService.placeAMove(move.position, move.player, roomId);
+        io.sockets.in(roomId).emit("gameboard", globalRooms[roomId].gameboard);
+    })
 
     socket.on("disconnect", () => {
         roomService.removeFromRoom(socket.id)

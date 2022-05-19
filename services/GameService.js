@@ -1,58 +1,59 @@
 let GameService = class {
-    constructor() {
-        this.gameboard = [
-            ['','',''],
-            ['','',''],
-            ['','',''],
-        ];
+
+    createBoard(roomId){
+        globalRooms[roomId].gameboard = [
+            [' ',' ',' '],
+            [' ',' ',' '],
+            [' ',' ',' '],
+        ]
     }
 
-    placeAMove(position, player){
-        console.log(this.gameboard)
-        if (this.gameboard[position.x][position.y] !== ''){
+    placeAMove(position, player, roomId){
+        if (globalRooms[roomId].gameboard[position.x][position.y] !== ' '){
             return;
         }
 
-        this.gameboard[position.x][position.y] = player.type;
-        if (this.checkForWinCondition()){
+        globalRooms[roomId].gameboard[position.x][position.y] = player.type;
+        if (this.checkForWinCondition(roomId)){
             console.log("Someone has won!!")
         }
 
 
     }
 
-    checkForWinCondition(){
-        return this.checkHorizontalWinCondition() || this.checkVerticalWinCondition() || this.checkDiagonalWinCondition();
+    checkForWinCondition(roomId){
+        return this.checkHorizontalWinCondition(roomId) || this.checkVerticalWinCondition(roomId) || this.checkDiagonalWinCondition(roomId);
     }
 
-    checkVerticalWinCondition(){
+    checkVerticalWinCondition(roomId){
         let pattern = "";
-         for (let i = 0; i < this.gameboard.length; i++) {
-           for (let j = 0; j < this.gameboard[i].length; j++) {
-             pattern += this.gameboard[j][i];
+         for (let i = 0; i < globalRooms[roomId].gameboard.length; i++) {
+           for (let j = 0; j < globalRooms[roomId].gameboard[i].length; j++) {
+             pattern += globalRooms[roomId].gameboard[j][i];
            }
         }
          return this.hasWon(pattern);
     }
 
-    checkHorizontalWinCondition(){
+    checkHorizontalWinCondition(roomId){
         let pattern = "";
-        for (let i = 0; i < this.gameboard.length; i++) {
-            for (let j = 0; j < this.gameboard[i].length; j++) {
-                pattern += this.gameboard[i][j];
+        for (let i = 0; i < globalRooms[roomId].gameboard.length; i++) {
+            for (let j = 0; j < globalRooms[roomId].gameboard[i].length; j++) {
+                pattern += globalRooms[roomId].gameboard[i][j];
             }
         }
         return this.hasWon(pattern);
     }
 
-    checkDiagonalWinCondition(){
-        let pattern = this.gameboard[0][0] + this.gameboard[1][1] + this.gameboard[2][2];
-        pattern += this.gameboard[2][0] + this.gameboard[1][1] + this.gameboard[0][2];
+    checkDiagonalWinCondition(roomId){
+        let pattern = globalRooms[roomId].gameboard[0][0] + globalRooms[roomId].gameboard[1][1] + globalRooms[roomId].gameboard[2][2];
+        pattern += globalRooms[roomId].gameboard[2][0] + globalRooms[roomId].gameboard[1][1] + globalRooms[roomId].gameboard[0][2];
 
         return this.hasWon(pattern);
     }
 
     hasWon(pattern) {
+        console.log(pattern)
         return pattern.includes('xxx') || pattern.includes("ooo");
     }
 
